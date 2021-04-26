@@ -76,7 +76,11 @@ form {
                             console.log('hash not yet received' + e);
                         }
                     },1000);
-                        reject("failed")
+                    ct = setTimeout(() => {
+                        reject("failed");
+                        ci();
+                        authWindow.close();
+                    }, 50000);
                     
         })
 
@@ -93,7 +97,7 @@ form {
             let match = RegExp(`[#&]${name}=([^&]*)`).exec(hash);
             return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
         }
-        
+
         function getAccessToken(hash) {
             return getParameterByName('access_token', hash);
         }
