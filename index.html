@@ -42,12 +42,14 @@ form {
 <script>
     function generateAccessToken()
     {
-        var serverType = document.getElementsByName("serverType").value;
+        var radioButtons = document.getElementsByName("serverType");
+        var serverType =  Array.from(radioButtons).find(radio => radio.checked);
         var clientID = document.getElementById("clientID").value;
         var scope = document.getElementById("scope").value;
         var redirectURL = document.getElementById("redirect_url").value;
         var url = "";
-        if(serverType == "production")
+        console.log(serverType);
+        if(serverType === "production")
         {
            
             url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
@@ -57,7 +59,7 @@ form {
         {
             // load in the localzoho
 
-            url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+            url = "https://accounts.localzoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
          }
         console.log(url);
         let myPromis = new Promise((resolve, reject) => {
@@ -78,7 +80,7 @@ form {
                     },1000);
                     ct = setTimeout(() => {
                         reject("failed");
-                        ci();
+                        c1();
                         authWindow.close();
                     }, 50000);
                     
