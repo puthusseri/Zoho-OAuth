@@ -1,0 +1,137 @@
+<html>
+<head>
+<title> OAuth Token generation</title>
+<style>
+
+
+
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input[type=button] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+input[type=button]:hover {
+  background-color: #45a049;
+}
+
+form {
+  border-radius: 5px;
+  margin: auto;
+  width: 60%;
+  padding: 10px;
+  background-color: #f2f2f2;
+}
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script>
+    function generateAccessToken()
+    {
+        var serverType = document.getElementsByName("serverType").value;
+        var clientID = document.getElementById("clientID").value;
+        var scope = document.getElementById("scope").value;
+        var redirectURL = document.getElementById("redirect_url").value;
+        var url = "";
+        if(serverType == "production")
+        {
+           
+            url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+            // then make the form submit to the production server
+        }
+        else
+        {
+            // load in the localzoho
+
+            url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+         }
+        console.log(url);
+        let myPromis = new Promise((resolve, reject) => {
+
+                let authorizationWindow = window.open(url, '_blank');
+                console.log(authorizationWindow);
+                    c1 = setInterval(() => {
+                        try{
+                            let hash_data = authorizationWindow.location.hash;
+                            if(hash_data){
+                                resolve(hash_data);
+                                authorizationWindow.close();
+                            }
+                        }
+                        catch (e) {
+                            console.log('hash not yet received' + e);
+                        }
+                    },1000);
+                        reject("failed")
+                    
+        })
+
+        myPromis.then((messge) => {
+                    generatedOauthToken = getAccessToken(hash);
+                    alert(generatedOauthToken);
+            
+        }).catch((messge) => {
+            console.log("Inside the failed function")
+        });
+    
+         
+        function getParameterByName(name, hash) {
+            let match = RegExp(`[#&]${name}=([^&]*)`).exec(hash);
+            return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+        }
+        
+        function getAccessToken(hash) {
+            return getParameterByName('access_token', hash);
+        }
+
+    }
+</script>
+</head>
+<body>
+    <center>
+        <h2>OAuth Token generation </h2>
+    </center>
+    <div>
+        <form method="post">
+            
+            <label for="clientID">Client ID:</label>
+            <input type="text" id="clientID" value="1000.XHAQDYIOTKUH9A8UCX8ZFTCW2W48ZL">
+            
+            <label for="redirect_url">Redirect URL</label>
+            <input type="text" id="redirect_url" value="https://puthusseri.github.io/">
+
+            <label for="scope">Scope</label>
+            <input type="text" id="scope" value="Desk.tickets.READ">
+            
+            <br><br>
+            <label>Server Type</label>
+            <div class="switch">
+                <input type="radio" class="switch-input" name="serverType" value="production" id="production" checked>
+                <label for="production" class="switch-label switch-label-off">Production</label>
+                <input type="radio" class="switch-input" name="serverType" value="local" id="local">
+                <label for="local">Local</label>
+                <span class="switch-selection"></span>
+              </div>
+            
+           <input type="button" value= "Generate OAuth-Token" onclick="generateAccessToken()">
+            
+           </form>
+    </div>
+    
+
+</body>
+</html>
