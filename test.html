@@ -1,0 +1,337 @@
+<html><head>
+    <title> OAuth Token generation</title>
+    <style>
+    
+    input[type=text], select {
+      width: 100%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      display: inline-block;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    input[type=button] {
+      width: 100%;
+      background-color: #4CAF50;
+      color: white;
+      padding: 14px 20px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    input[type=button]:hover {
+      background-color: #45a049;
+    }
+    
+    form {
+      border-radius: 5px;
+      margin: auto;
+      width: 60%;
+      padding: 10px;
+      background-color: #f2f2f2;
+    }
+
+
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script>
+        var scopeHistory = [];
+    
+    
+        function initialize()
+        {
+            // if the local storage contains the previous scopes, load that to our global array
+            if(localStorage.scopeHistory){ 
+                scopeHistory = localStorage.getItem("scopeHistory").split(";");
+                scopeHistory.pop(); // last item will be an empty value, so remove that 
+            }
+    
+            // if the client id is there in the local storage, then use that
+            if(localStorage.clientID)
+            {
+                document.getElementById("clientID").value = localStorage.clientID;
+            }
+    
+            if(localStorage.lastUsedScope)
+            {
+                document.getElementById("scope").value = localStorage.lastUsedScope;
+            }
+            // if the redirect url is present in the local storage, then use that 
+            if(localStorage.redirectURL)
+            {
+                document.getElementById("redirect_url").value = localStorage.redirectURL;
+            }
+        }
+        $(document).ready(function(){
+            initialize();
+        });
+        function generateAuthenticationCode()
+        {
+            var radioButtons = document.getElementsByName("serverType");
+            var serverType =  Array.from(radioButtons).find(radio => radio.checked).value.trim();
+            var clientID = document.getElementById("clientID").value;
+            var scope = document.getElementById("scope").value;
+            var redirectURL = document.getElementById("redirect_url").value;
+            var url = "";
+    
+    
+            // save the current client id, scope and redirect url to the localstorage
+            localStorage.setItem("clientID", clientID);
+            localStorage.setItem("redirectURL", redirectURL);
+            localStorage.setItem("lastUsedScope", scope);
+            // save the current scope to the local storage
+            if(scopeHistory.includes(scope) == false)
+            {
+                // a new scope, so add it to the array
+                scopeHistory.push(scope);
+                var stringScope = "";
+                for(var i=0;i<scopeHistory.length;i++)
+                {
+                    stringScope += scopeHistory[i]+";";
+                }
+                // add it to the localstorage
+                localStorage.setItem("scopeHistory", stringScope);
+            }
+            
+            if(serverType === "production")
+            {
+               // then make the form submit to the production server
+                url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+                
+            }
+            else if(serverType === "local")
+            {
+                // load in the localzoho
+                url = "https://accounts.localzoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+            }
+            else{
+                // load in the development
+                url = "https://accounts.csez.zohocorpin.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+            
+            }
+            // console.log(url);
+            let myPromis = new Promise((resolve, reject) => {
+    
+                    let authorizationWindow = window.open(url, '_blank');
+                    // console.log(authorizationWindow);
+                        c1 = setInterval(() => {
+                            try{
+                                let hash_data = authorizationWindow.location.hash;
+                                if(hash_data){
+                                    
+                                    console.log("hash data = "+hash_data);
+                                    authorizationWindow.close();        // close that window
+                                    resolve(hash_data);                 // call the success function
+                                    
+                                }
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                        },1000);
+                        ct = setTimeout(() => {
+                            reject("failed");
+                            authorizationWindow.close();
+                        }, 50000);
+                        
+            })
+    
+            myPromis.then((hash_data) => {
+                console.log("Inside the success function, hash data : "+hash_data);
+                var access_code = hash_data.match('[#&]access_token=*[^&]*')[0].split("=")[1]; 
+                document.getElementById("access_code").value = access_code;      
+                console.log(access_code);
+                // 
+                
+            }).catch((messge) => {
+                console.log("Inside the failed function"+messge);
+            });
+        }
+    
+    function loadTickets()
+    {
+        var radioButtons = document.getElementsByName("serverType");
+        var serverType =  Array.from(radioButtons).find(radio => radio.checked).value;
+        var clientID = document.getElementById("clientID").value;
+        var scope = document.getElementById("scope").value;
+        var redirectURL = document.getElementById("redirect_url").value;
+        var access_code = "Zoho-authtoken "+document.getElementById("access_code").value;
+        var url = "";
+        console.log("loadTickets()");
+       
+        
+        // make a post request to generate the access token
+        $.ajax({
+    
+            url: "https://desk.zoho.com/api/v1/tickets",
+            headers: {
+                'Authorization':access_code,
+                'orgId':'631525936'
+            },
+            method: 'GET',
+            dataType: 'json',
+            success: function(data){
+                console.log('success: '+data);
+            },
+            error: function(){
+                console.log('error : ');
+            }
+    
+        });
+    }
+    
+    function loadScope(scope)
+    {
+        // load the value of the scope to the form field
+        document.getElementById("scope").value = scope;
+    }
+    function loadHistory()
+    {
+        if(document.getElementById("scopeHistorySelection"))
+        {
+            // so that multiple fields wont get generated, removing the old one
+            document.getElementById("scopeHistorySelection").remove();
+        }
+        // load the history of the scope to the div, from the local storage 
+       
+        // let container = document.createElement("div");
+        // container.id= "wrapper";
+        // create a select box after the input type
+        // let select = document.createElement("ul");
+        // select.name = "scopeHistorySelection";
+        // select.id = "scopeHistorySelection";
+        // for(i of scopeHistory)
+        // {
+        //     // add it as options
+        //     let option = document.createElement("li");
+        //     // option.value = i;
+        //     // option.text = i;
+        //     option.appendChild(document.createTextNode(i));
+        //     select.appendChild(option);
+    
+        // }
+        
+        // container.appendChild(select);
+        // document.getElementById("scope").parentNode.insertBefore(container, document.getElementById("scope").nextSibling);
+        // // $("#scopeHistorySelection").click(function(){
+        //     let temp = document.getElementById("scopeHistorySelection");
+    
+        //     // document.getElementById("scope").value = temp.options[temp.selectedIndex].text;
+        //     // delete the current select box
+        //     // document.getElementById("scopeHistorySelection").remove();
+        // });
+        let select = document.createElement("select");
+        select.name = "scopeHistorySelection";
+        select.id = "scopeHistorySelection";
+        for(i of scopeHistory)
+        {
+            // add it as options
+            let option = document.createElement("option");
+            option.value = i;
+            option.text = i;
+            option.appendChild(document.createTextNode(i));
+            select.appendChild(option);
+    
+        }
+        
+        // container.appendChild(select);
+        document.getElementById("scope").parentNode.insertBefore(select, document.getElementById("scope").nextSibling);
+        
+        $('ul li').click(function() {
+            document.getElementById("scope").value = $(this).text();
+            document.getElementById("scopeHistorySelection").remove();
+        });
+        // document.getElementById("scope").appendChild(select);
+        
+    }
+    
+    </script>
+    </head>
+    <body>
+        <center>
+            <h2>OAuth Token generation </h2>
+        </center>
+        <div>
+            <form method="post">
+                
+                <label for="clientID">Client ID:</label>
+                <input type="text" id="clientID" value="1000.XHAQDYIOTKUH9A8UCX8ZFTCW2W48ZL">
+                
+                <label for="redirect_url">Redirect URL</label>
+                <input type="text" id="redirect_url" value="http://vyshak-zt515.tsi.zohocorpin.com:5500/index.html">
+    
+                <label for="scope">Scope</label>
+                <input type="text" id="scope" value="Desk.tickets.READ" onclick="loadHistory()"><div id="wrapper"><ul id="scopeHistorySelection"><li>Desk.tickets.READ</li><li>Desk.tickets.ALL</li><li>Desk.tickets.search</li><li>Desk.tickets.kun</li><li>Desk.tickets.sears</li><li>Desk.tickets.seaas</li><li>Desk.tickets.ALL,Desk.settings.ALL,Desk.search.READ,Desk.basic.READ</li><li>Desk.tickets.ALL,Desk.settings.ALL,Desk.search.manu,Desk.basic.READ</li></ul></div>
+                
+                <br><br>
+                <label>Server Type</label>
+                <div class="switch">
+                    <input type="radio" class="switch-input" name="serverType" value="production" id="production" checked="">
+                    <label for="production" class="switch-label switch-label-off">Production</label>
+                    <input type="radio" class="switch-input" name="serverType" value="local" id="local">
+                    <label for="local">Local</label>
+                    <input type="radio" class="switch-input" name="serverType" value="development" id="development">
+                    <label for="development">Development</label>
+                  </div>
+                
+               <input type="button" value="Generate Access-Code" onclick="generateAuthenticationCode()">
+                
+               </form>
+               <div id="previousScopesContainer">
+                    testing code
+               </div>
+        </div>
+        <br><br><br>
+        <form action="https://desk.zoho.com/api/v1/tickets">
+            <label for="access_code">access_code</label>
+            <input type="text" placeholder="access_code" id="access_code" value="" disabled="">
+           
+            <!-- <input type="button" value= "Load Tickets" onclick="loadTickets()"> -->
+        </form>
+    
+        <input type="button" onclick="loadHistory()" value="load history">
+    
+    <!-- Code injected by live-server -->
+    <script type="text/javascript">
+        // <![CDATA[  <-- For SVG support
+        if ('WebSocket' in window) {
+            (function () {
+                function refreshCSS() {
+                    var sheets = [].slice.call(document.getElementsByTagName("link"));
+                    var head = document.getElementsByTagName("head")[0];
+                    for (var i = 0; i < sheets.length; ++i) {
+                        var elem = sheets[i];
+                        var parent = elem.parentElement || head;
+                        parent.removeChild(elem);
+                        var rel = elem.rel;
+                        if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+                            var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+                            elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+                        }
+                        parent.appendChild(elem);
+                    }
+                }
+                var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+                var address = protocol + window.location.host + window.location.pathname + '/ws';
+                var socket = new WebSocket(address);
+                socket.onmessage = function (msg) {
+                    if (msg.data == 'reload') window.location.reload();
+                    else if (msg.data == 'refreshcss') refreshCSS();
+                };
+                if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+                    console.log('Live reload enabled.');
+                    sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+                }
+            })();
+        }
+        else {
+            console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+        }
+        // ]]>
+    </script>
+    
+    </body></html>

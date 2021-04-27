@@ -3,8 +3,6 @@
 <title> OAuth Token generation</title>
 <style>
 
-
-
 input[type=text], select {
   width: 100%;
   padding: 12px 20px;
@@ -37,31 +35,84 @@ form {
   padding: 10px;
   background-color: #f2f2f2;
 }
+
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script>
+    var scopeHistory = [];
+
+
+    function initialize()
+    {
+        // if the local storage contains the previous scopes, load that to our global array
+        if(localStorage.scopeHistory){ 
+            scopeHistory = localStorage.getItem("scopeHistory").split(";");
+            scopeHistory.pop(); // last item will be an empty value, so remove that 
+        }
+
+        // if the client id is there in the local storage, then use that
+        if(localStorage.clientID)
+        {
+            document.getElementById("clientID").value = localStorage.clientID;
+        }
+
+        if(localStorage.lastUsedScope)
+        {
+            document.getElementById("scope").value = localStorage.lastUsedScope;
+        }
+        // if the redirect url is present in the local storage, then use that 
+        if(localStorage.redirectURL)
+        {
+            document.getElementById("redirect_url").value = localStorage.redirectURL;
+        }
+    }
+    $(document).ready(function(){
+        initialize();
+    });
     function generateAuthenticationCode()
     {
         var radioButtons = document.getElementsByName("serverType");
-        var serverType =  Array.from(radioButtons).find(radio => radio.checked).value;
+        var serverType =  Array.from(radioButtons).find(radio => radio.checked).value.trim();
         var clientID = document.getElementById("clientID").value;
         var scope = document.getElementById("scope").value;
         var redirectURL = document.getElementById("redirect_url").value;
         var url = "";
-        console.log(serverType);
+
+
+        // save the current client id, scope and redirect url to the localstorage
+        localStorage.setItem("clientID", clientID);
+        localStorage.setItem("redirectURL", redirectURL);
+        localStorage.setItem("lastUsedScope", scope);
+        // save the current scope to the local storage
+        if(scopeHistory.includes(scope) == false)
+        {
+            // a new scope, so add it to the array
+            scopeHistory.push(scope);
+            var stringScope = "";
+            for(var i=0;i<scopeHistory.length;i++)
+            {
+                stringScope += scopeHistory[i]+";";
+            }
+            // add it to the localstorage
+            localStorage.setItem("scopeHistory", stringScope);
+        }
+        
         if(serverType === "production")
         {
-           
+           // then make the form submit to the production server
             url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
-            // then make the form submit to the production server
             
         }
-        else
+        else if(serverType === "local")
         {
             // load in the localzoho
-
             url = "https://accounts.localzoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
-         }
+        }
+        else{
+            // load in the development
+            url = "https://accounts.csez.zohocorpin.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+        
+        }
         // console.log(url);
         let myPromis = new Promise((resolve, reject) => {
 
@@ -111,14 +162,7 @@ function loadTickets()
     var access_code = "Zoho-authtoken "+document.getElementById("access_code").value;
     var url = "";
     console.log("loadTickets()");
-    if(serverType === "production")
-    {
-        url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
-    }
-    else
-    {
-        url = "https://accounts.localzoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
-    }
+   
     
     // make a post request to generate the access token
     $.ajax({
@@ -139,6 +183,78 @@ function loadTickets()
 
     });
 }
+
+function loadScope(scope)
+{
+    // load the value of the scope to the form field
+    document.getElementById("scope").value = scope;
+}
+function loadHistory()
+{
+    if(document.getElementById("scopeHistorySelection"))
+    {
+        // so that multiple fields wont get generated, removing the old one
+        document.getElementById("scopeHistorySelection").remove();
+    }
+    // load the history of the scope to the div, from the local storage 
+    let select = document.createElement("select");
+        select.name = "scopeHistorySelection";
+        select.id = "scopeHistorySelection";
+        for(i of scopeHistory)
+        {
+            // add it as options
+            let option = document.createElement("option");
+            option.value = i;
+            option.text = i;
+            option.appendChild(document.createTextNode(i));
+            select.appendChild(option);
+    
+        }
+        
+        // container.appendChild(select);
+        document.getElementById("scope").parentNode.insertBefore(select, document.getElementById("scope").nextSibling);
+        
+        $("#scopeHistorySelection").click(function() {
+            let temp = document.getElementById("scopeHistorySelection");
+
+            document.getElementById("scope").value = temp.options[temp.selectedIndex].text;
+        
+            document.getElementById("scopeHistorySelection").remove();
+        });
+    // let container = document.createElement("div");
+    // container.id= "wrapper";
+    // // create a select box after the input type
+    // let select = document.createElement("ul");
+    // select.name = "scopeHistorySelection";
+    // select.id = "scopeHistorySelection";
+    // for(i of scopeHistory)
+    // {
+    //     // add it as options
+    //     let option = document.createElement("li");
+    //     // option.value = i;
+    //     // option.text = i;
+    //     option.appendChild(document.createTextNode(i));
+    //     select.appendChild(option);
+
+    // }
+    
+    // container.appendChild(select);
+    // document.getElementById("scope").parentNode.insertBefore(container, document.getElementById("scope").nextSibling);
+    // // $("#scopeHistorySelection").click(function(){
+    // //     let temp = document.getElementById("scopeHistorySelection");
+
+    // //     // document.getElementById("scope").value = temp.options[temp.selectedIndex].text;
+    // //     // delete the current select box
+    // //     // document.getElementById("scopeHistorySelection").remove();
+    // // });
+    // $('ul li').click(function() {
+    //     document.getElementById("scope").value = $(this).text();
+    //     document.getElementById("wrapper").remove();
+    // });
+    // document.getElementById("scope").appendChild(select);
+    
+}
+
 </script>
 </head>
 <body>
@@ -155,7 +271,7 @@ function loadTickets()
             <input type="text" id="redirect_url" value="http://vyshak-zt515.tsi.zohocorpin.com:5500/index.html">
 
             <label for="scope">Scope</label>
-            <input type="text" id="scope" value="Desk.tickets.READ">
+            <input type="text" id="scope" value="Desk.tickets.READ" onclick="loadHistory()">
             
             <br><br>
             <label>Server Type</label>
@@ -164,7 +280,8 @@ function loadTickets()
                 <label for="production" class="switch-label switch-label-off">Production</label>
                 <input type="radio" class="switch-input" name="serverType" value="local" id="local">
                 <label for="local">Local</label>
-                <span class="switch-selection"></span>
+                <input type="radio" class="switch-input" name="serverType" value="development" id="development">
+                <label for="development">Development</label>
               </div>
             
            <input type="button" value= "Generate Access-Code" onclick="generateAuthenticationCode()">
@@ -174,10 +291,12 @@ function loadTickets()
     <br><br><br>
     <form action="https://desk.zoho.com/api/v1/tickets">
         <label for="access_code">access_code</label>
-        <input type="text" placeholder="access_code"  id = "access_code" value="" >
+        <input type="text" placeholder="access_code"  id = "access_code" value="" disabled >
        
-        <input type="button" value= "Load Tickets" onclick="loadTickets()">
+        <!-- <input type="button" value= "Load Tickets" onclick="loadTickets()"> -->
     </form>
+
+    <input type="button" onclick="loadHistory()" value="load history">
 
 </body>
 </html>
