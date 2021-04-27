@@ -43,7 +43,7 @@ form {
     function generateAccessToken()
     {
         var radioButtons = document.getElementsByName("serverType");
-        var serverType =  Array.from(radioButtons).find(radio => radio.checked);
+        var serverType =  Array.from(radioButtons).find(radio => radio.checked).value;
         var clientID = document.getElementById("clientID").value;
         var scope = document.getElementById("scope").value;
         var redirectURL = document.getElementById("redirect_url").value;
