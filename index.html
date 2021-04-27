@@ -40,10 +40,10 @@ form {
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script>
-    function generateAccessToken()
+    function generateAuthenticationCode()
     {
         var radioButtons = document.getElementsByName("serverType");
-        var serverType =  Array.from(radioButtons).find(radio => radio.checked);
+        var serverType =  Array.from(radioButtons).find(radio => radio.checked).value;
         var clientID = document.getElementById("clientID").value;
         var scope = document.getElementById("scope").value;
         var redirectURL = document.getElementById("redirect_url").value;
@@ -54,6 +54,7 @@ form {
            
             url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
             // then make the form submit to the production server
+            
         }
         else
         {
@@ -61,50 +62,83 @@ form {
 
             url = "https://accounts.localzoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
          }
-        console.log(url);
+        // console.log(url);
         let myPromis = new Promise((resolve, reject) => {
 
                 let authorizationWindow = window.open(url, '_blank');
-                console.log(authorizationWindow);
+                // console.log(authorizationWindow);
                     c1 = setInterval(() => {
                         try{
                             let hash_data = authorizationWindow.location.hash;
                             if(hash_data){
-                                resolve(hash_data);
-                                authorizationWindow.close();
+                                
+                                console.log("hash data = "+hash_data);
+                                authorizationWindow.close();        // close that window
+                                resolve(hash_data);                 // call the success function
+                                
                             }
                         }
                         catch (e) {
-                            console.log('hash not yet received' + e);
+                            console.log(e);
                         }
                     },1000);
                     ct = setTimeout(() => {
                         reject("failed");
-                        c1();
-                        authWindow.close();
+                        authorizationWindow.close();
                     }, 50000);
                     
         })
 
-        myPromis.then((messge) => {
-                    generatedOauthToken = getAccessToken(hash);
-                    alert(generatedOauthToken);
+        myPromis.then((hash_data) => {
+            console.log("Inside the success function, hash data : "+hash_data);
+            var access_code = hash_data.match('[#&]access_token=*[^&]*')[0].split("=")[1]; 
+            document.getElementById("access_code").value = access_code;      
+            console.log(access_code);
+            // 
             
         }).catch((messge) => {
-            console.log("Inside the failed function")
+            console.log("Inside the failed function"+messge);
         });
-    
-         
-        function getParameterByName(name, hash) {
-            let match = RegExp(`[#&]${name}=([^&]*)`).exec(hash);
-            return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-        }
-
-        function getAccessToken(hash) {
-            return getParameterByName('access_token', hash);
-        }
-
     }
+
+function loadTickets()
+{
+    var radioButtons = document.getElementsByName("serverType");
+    var serverType =  Array.from(radioButtons).find(radio => radio.checked).value;
+    var clientID = document.getElementById("clientID").value;
+    var scope = document.getElementById("scope").value;
+    var redirectURL = document.getElementById("redirect_url").value;
+    var access_code = "Zoho-authtoken "+document.getElementById("access_code").value;
+    var url = "";
+    console.log("loadTickets()");
+    if(serverType === "production")
+    {
+        url = "https://accounts.zoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+    }
+    else
+    {
+        url = "https://accounts.localzoho.com/oauth/v2/auth?response_type=token&client_id="+clientID+"&scope="+scope+"&redirect_uri="+redirectURL;
+    }
+    
+    // make a post request to generate the access token
+    $.ajax({
+
+        url: "https://desk.zoho.com/api/v1/tickets",
+        headers: {
+            'Authorization':access_code,
+            'orgId':'631525936'
+        },
+        method: 'GET',
+        dataType: 'json',
+        success: function(data){
+            console.log('success: '+data);
+        },
+        error: function(){
+            console.log('error : ');
+        }
+
+    });
+}
 </script>
 </head>
 <body>
@@ -118,7 +152,7 @@ form {
             <input type="text" id="clientID" value="1000.XHAQDYIOTKUH9A8UCX8ZFTCW2W48ZL">
             
             <label for="redirect_url">Redirect URL</label>
-            <input type="text" id="redirect_url" value="https://puthusseri.github.io/">
+            <input type="text" id="redirect_url" value="http://vyshak-zt515.tsi.zohocorpin.com:5500/index.html">
 
             <label for="scope">Scope</label>
             <input type="text" id="scope" value="Desk.tickets.READ">
@@ -133,11 +167,17 @@ form {
                 <span class="switch-selection"></span>
               </div>
             
-           <input type="button" value= "Generate OAuth-Token" onclick="generateAccessToken()">
+           <input type="button" value= "Generate Access-Code" onclick="generateAuthenticationCode()">
             
            </form>
     </div>
-    
+    <br><br><br>
+    <form action="https://desk.zoho.com/api/v1/tickets">
+        <label for="access_code">access_code</label>
+        <input type="text" placeholder="access_code"  id = "access_code" value="" >
+       
+        <input type="button" value= "Load Tickets" onclick="loadTickets()">
+    </form>
 
 </body>
 </html>
