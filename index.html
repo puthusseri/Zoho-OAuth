@@ -73,7 +73,7 @@
         $(document).ready(function(){
             initialize();
         });
-        const copyToClipboard = str => {
+        function copyToClipboard(str) {
             const el = document.createElement('textarea');
             el.value = str;
             el.setAttribute('readonly', '');
@@ -91,7 +91,7 @@
                 document.getSelection().removeAllRanges();
                 document.getSelection().addRange(selected);
             }
-        };
+        }
         function generateAuthenticationCode()
         {
             var radioButtons = document.getElementsByName("serverType");
