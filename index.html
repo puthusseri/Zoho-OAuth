@@ -73,25 +73,18 @@
         $(document).ready(function(){
             initialize();
         });
-        function copyToClipboard(str) {
+        const copyToClipboard = str => {
+            console.log("copyong");
             const el = document.createElement('textarea');
             el.value = str;
             el.setAttribute('readonly', '');
             el.style.position = 'absolute';
             el.style.left = '-9999px';
             document.body.appendChild(el);
-            const selected =
-                document.getSelection().rangeCount > 0
-                ? document.getSelection().getRangeAt(0)
-                : false;
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            if (selected) {
-                document.getSelection().removeAllRanges();
-                document.getSelection().addRange(selected);
-            }
-        }
+        };
         function generateAuthenticationCode()
         {
             var radioButtons = document.getElementsByName("serverType");
@@ -166,7 +159,6 @@
                 var access_code = hash_data.match('[#&]access_token=*[^&]*')[0].split("=")[1]; 
                 document.getElementById("access_code").value = access_code;      
                 console.log(access_code);
-                copyToClipboard(access_code);
                 // 
                 
             }).catch((messge) => {
@@ -255,25 +247,9 @@
                 }
             }
         }
-        const copyToClipboard = str => {
-            const el = document.createElement('textarea');
-            el.value = str;
-            el.setAttribute('readonly', '');
-            el.style.position = 'absolute';
-            el.style.left = '-9999px';
-            document.body.appendChild(el);
-            const selected =
-                document.getSelection().rangeCount > 0
-                ? document.getSelection().getRangeAt(0)
-                : false;
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            if (selected) {
-                document.getSelection().removeAllRanges();
-                document.getSelection().addRange(selected);
-            }
-        };
+        function copyContent(){
+            copyToClipboard(document.getElementById("access_code").value);
+        }
    </script>
 </head>
 <body>
@@ -309,7 +285,7 @@
     <br><br><br>
     <form action="https://desk.zoho.com/api/v1/tickets">
         <label for="access_code">access_code</label>
-        <input type="text" placeholder="access_code"  id = "access_code" value="" disabled >
+        <input type="text" placeholder="access_code"  id = "access_code" value="12asdasee3" onclick="copyContent()">
     </form>
 
     <input type="button" onclick="localStorage.clear()" value="Reset LocalStorage">
