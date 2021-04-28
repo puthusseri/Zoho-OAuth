@@ -73,6 +73,25 @@
         $(document).ready(function(){
             initialize();
         });
+        const copyToClipboard = str => {
+            const el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            const selected =
+                document.getSelection().rangeCount > 0
+                ? document.getSelection().getRangeAt(0)
+                : false;
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            if (selected) {
+                document.getSelection().removeAllRanges();
+                document.getSelection().addRange(selected);
+            }
+        };
         function generateAuthenticationCode()
         {
             var radioButtons = document.getElementsByName("serverType");
@@ -147,6 +166,7 @@
                 var access_code = hash_data.match('[#&]access_token=*[^&]*')[0].split("=")[1]; 
                 document.getElementById("access_code").value = access_code;      
                 console.log(access_code);
+                copyToClipboard(access_code);
                 // 
                 
             }).catch((messge) => {
@@ -235,7 +255,26 @@
                 }
             }
         }
-    </script>
+        const copyToClipboard = str => {
+            const el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            const selected =
+                document.getSelection().rangeCount > 0
+                ? document.getSelection().getRangeAt(0)
+                : false;
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            if (selected) {
+                document.getSelection().removeAllRanges();
+                document.getSelection().addRange(selected);
+            }
+        };
+   </script>
 </head>
 <body>
     
