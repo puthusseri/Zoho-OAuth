@@ -85,6 +85,9 @@
             document.execCommand('copy');
             document.body.removeChild(el);
         };
+        function copyContent(){
+            copyToClipboard(document.getElementById("access_code").value);
+        }
         function generateAuthenticationCode()
         {
             var radioButtons = document.getElementsByName("serverType");
@@ -159,6 +162,7 @@
                 var access_code = hash_data.match('[#&]access_token=*[^&]*')[0].split("=")[1]; 
                 document.getElementById("access_code").value = access_code;      
                 console.log(access_code);
+                // copyContent();
                 // 
                 
             }).catch((messge) => {
@@ -247,9 +251,7 @@
                 }
             }
         }
-        function copyContent(){
-            copyToClipboard(document.getElementById("access_code").value);
-        }
+        
    </script>
 </head>
 <body>
