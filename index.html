@@ -36,6 +36,23 @@ form {
   background-color: #f2f2f2;
 }
 
+.scopeOptions:hover{
+    background-color: gray;
+
+}
+.scopeOptions:active{
+    background-color: white;
+
+}
+
+.center {
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+
+}
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script>
@@ -206,6 +223,7 @@ function loadHistory()
             let option = document.createElement("option");
             option.value = i;
             option.text = i;
+            option.className="scopeOptions";
             option.appendChild(document.createTextNode(i));
             select.appendChild(option);
     
@@ -220,6 +238,14 @@ function loadHistory()
             document.getElementById("scope").value = temp.options[temp.selectedIndex].text;
         
             document.getElementById("scopeHistorySelection").remove();
+        });
+        $('select').hover(function() {
+            // for opening the select box on hover
+
+            $(this).attr('size', $('option').length);
+            }, function() {
+
+            $(this).attr('size', 1);
         });
     // let container = document.createElement("div");
     // container.id= "wrapper";
@@ -258,9 +284,9 @@ function loadHistory()
 </script>
 </head>
 <body>
-    <center>
-        <h2>OAuth Token generation </h2>
-    </center>
+    
+        <h2 class="center">OAuth Token generation </h2>
+    
     <div>
         <form method="post">
             
@@ -271,7 +297,7 @@ function loadHistory()
             <input type="text" id="redirect_url" value="http://vyshak-zt515.tsi.zohocorpin.com:5500/index.html">
 
             <label for="scope">Scope</label>
-            <input type="text" id="scope" value="Desk.tickets.READ" onclick="loadHistory()">
+            <input type="text" id="scope" value="Desk.tickets.READ" onclick="loadHistory()" autocomplete="off">
             
             <br><br>
             <label>Server Type</label>
