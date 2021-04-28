@@ -69,6 +69,9 @@
             {
                 document.getElementById("redirect_url").value = localStorage.redirectURL;
             }
+            if(localStorage.access_code){
+                document.getElementById("access_code").value = localStorage.access_code;
+            }
         }
         $(document).ready(function(){
             initialize();
@@ -161,7 +164,9 @@
                 console.log("Inside the success function, hash data : "+hash_data);
                 var access_code = hash_data.match('[#&]access_token=*[^&]*')[0].split("=")[1]; 
                 document.getElementById("access_code").value = access_code;      
+                localStorage.access_code = access_code;
                 console.log(access_code);
+                
                 // copyContent();
                 // 
                 
