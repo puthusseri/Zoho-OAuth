@@ -1,4 +1,4 @@
-input[type=text], select {
+input[type=text], input[type=password], select {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
@@ -81,3 +81,5 @@ input[type=text], select {
     from {bottom: 30px; opacity: 1;}
     to {bottom: 0; opacity: 0;}
     }
+    
+    

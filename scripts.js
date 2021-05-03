@@ -240,5 +240,13 @@ var scopeHistory = [];
             $('#snackbar').text("Clearing History");
             popUpMessage(); 
         }
-        
-        
+        $(document).ready(function(){
+            
+            $('#access_code').hover(function(){
+                $('#tooltiptext').css("visibility","visible");
+            }); 
+            $('#access_code').mouseout(function(){
+                $('#tooltiptext').css("visibility","hidden");
+            });
+        });
+       

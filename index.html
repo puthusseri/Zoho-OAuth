@@ -25,7 +25,7 @@
             <input type="text" id="redirect_url" value="https://puthusseri.github.io/Zoho-OAuth/">
 
             <label for="scope">Scope</label>
-            <input type="text" id="scope" value="Desk.tickets.ALL" onclick="loadHistory()" autocomplete="off">
+            <input type="text" id="scope" value="Desk.tickets.ALL," onclick="loadHistory()" autocomplete="off">
             
             <br><br>
             <label>Server Type</label>
@@ -43,11 +43,14 @@
         </form>
     </div>
     <br><br><br>
-    <form action="https://desk.zoho.com/api/v1/tickets">
+    <form action="https://desk.zoho.com/api/v1/tickets" >
         <label for="access_code">access_code</label>
-        <input type="text" placeholder="access_code"  id = "access_code" value="" onclick="copyContent()">
+        <input type="password" placeholder="access_code"  id = "access_code" value="" onclick="copyContent()" class="tooltip">
+        
     </form>
-
+    
+    <span class="tooltiptext" id = "tooltiptext" style="position:relative;display: inline-block;border-bottom:1px dotted black;visibility:hidden;background-color: black;color: white;padding: 20px;margin-left: 60px;top: -63px;">Click to copy the access_code</span>
+  
     <input type="button" onclick="clearHistory()" value="Clear History">
     <div id="snackbar">Access code copied</div>
 </body>
