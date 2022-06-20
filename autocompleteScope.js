@@ -6,7 +6,8 @@ $(function() {
         'Desk.settings.ALL', 'Desk.settings.WRITE', 'Desk.settings.READ', 'Desk.settings.CREATE', 'Desk.settings.UPDATE', 'Desk.settings.DELETE', 
         'Desk.search.READ', 
         'Desk.events.ALL', 'Desk.events.READ', 'Desk.events.WRITE', 'Desk.events.CREATE', 'Desk.events.UPDATE', 'Desk.events.DELETE', 
-        'Desk.articles.READ', 'Desk.articles.CREATE', 'Desk.articles.UPDATE', 'Desk.articles.DELETE'
+        'Desk.articles.READ', 'Desk.articles.CREATE', 'Desk.articles.UPDATE', 'Desk.articles.DELETE',
+        'ZohoCRM.modules.ALL','ZohoCRM.org.ALL'
     ];
         
     function split( val ) {
